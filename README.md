@@ -30,7 +30,7 @@ This workflow automates the process of reading tech news by fetching articles fr
 - **Output:** Clean, HTML-formatted email digest with links
 - **Goal:** Automate news summarization into email-ready content
 
-📄 Workflow file: [`rss-digest.json`](./workflows/rss-digest.json)
+📄 Workflow file: [rss-digest.json](./workflows/rss-digest.json)
 
 📸 Screenshot: [rss-email-output](./workflows/rss-email-output.png)
 
