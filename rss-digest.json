@@ -1,0 +1,338 @@
+{
+  "name": "RSS Summarisation to Email",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -420,
+        0
+      ],
+      "id": "b7759d38-2b9e-46b8-a053-8b175895d99d",
+      "name": "RSS Feed Check Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://techcrunch.com/feed/",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [
+        -200,
+        0
+      ],
+      "id": "74822ea2-c833-4a86-a371-c166d38836cd",
+      "name": "RSS Read"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You will be given 3 article links and their full text content.\n\nFor each article:\n1. Create a clean, readable title from the URL slug (last part of the link):\n   - Replace hyphens with spaces\n   - Capitalize important words like a proper headline\n2. Use this title as a bold heading (**Title**)\n3. Write a clear, one-paragraph summary of the article content\n4. At the end of the paragraph, add:  \n   *Click here to learn more*, which links to the article URL\n\nFormat:\n**[Title]**  \n[Summary paragraph]  \n[Click here to learn more]\n\nOnly return the formatted summaries. No intro or extra text.\nConvert the output to HTML Format.\n\nArticle Links: {{ $json['Selected Articles'] }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        0
+      ],
+      "id": "22be879c-6a12-47fc-ad43-fb3dc21f7a94",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "link",
+              "renameField": true,
+              "outputFieldName": "Selected Articles"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        680,
+        0
+      ],
+      "id": "1ff7434c-618c-4a2e-a6d1-a1612b708c1c",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash-001",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1208,
+        220
+      ],
+      "id": "79e2406a-7278-4c8e-ad91-a0e1ef8812b9",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "XFddA6SQcngiJxBL",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "35d0c54b-bc5f-4887-8414-15e4477dbc0d",
+              "name": "=Selected Articles",
+              "value": "={{ $json['Selected Articles'].join(\"\\n\") }}",
+              "type": "string"
+            },
+            {
+              "id": "709f3234-d357-402f-a49c-3f87d54b5e1f",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        900,
+        0
+      ],
+      "id": "fd304680-e8f3-4162-a22a-a7c3da109169",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cda57641-1da7-4e10-b004-4b9d8d323af6",
+              "name": "link",
+              "value": "={{ $json.link }}",
+              "type": "string"
+            },
+            {
+              "id": "b40e9abd-1bf2-49cf-b8e9-5352d523ac84",
+              "name": "categories",
+              "value": "={{ $json.categories }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        20,
+        0
+      ],
+      "id": "2bc8895c-3a37-4deb-b72c-b2207a0b3a4c",
+      "name": "Select Link and Categories"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "477e776d-c808-4db8-b8e1-36f489653964",
+              "leftValue": "={{ $json.categories }}",
+              "rightValue": "AI",
+              "operator": {
+                "type": "array",
+                "operation": "contains",
+                "rightType": "any"
+              }
+            },
+            {
+              "id": "69d882ff-735d-4d22-bde5-db37d85217d8",
+              "leftValue": "={{ $json.categories }}",
+              "rightValue": "Startups",
+              "operator": {
+                "type": "array",
+                "operation": "contains",
+                "rightType": "any"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        240,
+        0
+      ],
+      "id": "a5b7ffeb-1eb3-4e11-86b9-41dd2d8eb5ad",
+      "name": "Select \"AI Startups\" articles"
+    },
+    {
+      "parameters": {
+        "maxItems": 3
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        460,
+        0
+      ],
+      "id": "5446204b-e743-4202-9f4f-50e31f7a4ebc",
+      "name": "Select top 3 articles"
+    },
+    {
+      "parameters": {
+        "sendTo": "niranjanbiju2k04@gmail.com",
+        "subject": "Top AI & Startup News, Condensed for You",
+        "message": "={{ $json.output.replace(\"```html\",\"\") }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1496,
+        0
+      ],
+      "id": "27682fa3-4548-45cc-a475-51b6c3939925",
+      "name": "Daily Digest Email",
+      "webhookId": "eb0a88bd-21fa-4562-b1bc-982b8657aab6",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "R7N2ZKPG37x3rqvX",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "RSS Feed Check Trigger": {
+      "main": [
+        [
+          {
+            "node": "RSS Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read": {
+      "main": [
+        [
+          {
+            "node": "Select Link and Categories",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Daily Digest Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Link and Categories": {
+      "main": [
+        [
+          {
+            "node": "Select \"AI Startups\" articles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select \"AI Startups\" articles": {
+      "main": [
+        [
+          {
+            "node": "Select top 3 articles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select top 3 articles": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "46839951-5781-4b18-abb1-860129abb11f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d8e18f93965f4f35206667d336a73ea2e329305a011bb3f6f4f0ff80f00a384c"
+  },
+  "id": "3N53sculYy2mFPjw",
+  "tags": []
+}
