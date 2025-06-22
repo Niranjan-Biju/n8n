@@ -1,65 +1,37 @@
-<h1> n8n </h1>
-<hr style="height:2px; background-color:#ccc; border:none;">
+# 🧩 My n8n Automation Projects
 
-This document outlines the full step-by-step process I followed to self-host ***n8n*** on my system using WSL2, Debian, and Docker Compose.
+**[n8n](https://n8n.io)** is an open-source, self-hostable automation platform that lets you visually connect APIs, services, and logic — no coding required.
 
-## ⚙️ My Environment
+This repository contains a collection of automation workflows built on my self-hosted n8n instance.
 
-- Windows 11
-- WSL2
-- Debian (installed via WSL)
-- Docker & Docker Compose
-<hr style="height:2px; background-color:#ccc; border:none;">
+Check out my workflows **[here](./workflows)**
 
-## 🛠️ Step-by-Step Setup
+---
 
-### 1️⃣ Enable WSL & Install Debian
+## 📂 Repository Structure
 
-<pre>wsl --install -d Debian</pre>
+| File/Folder          | Purpose                                                  |
+|----------------------|----------------------------------------------------------|
+| `setup.md`           | Step-by-step guide to setting up n8n using WSL2 + Docker |
+| `workflows/`         | Contains exported `.json` workflows                      |
+| `screenshots/`       | Contains screenshots of the workflows                    |
+| `docker-compose.yml` | Full Docker stack: n8n + PostgreSQL + Ollama             |
 
-**⚠️ Note: WSL will install Ubuntu by default**
+## 🛠️ Projects
 
-### 2️⃣ Install Docker (Inside Debian)
+### 1️⃣ RSS-to-Email Tech Digest
 
-<pre>curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian \
-  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt update
-sudo apt install docker-ce docker-ce-cli containerd.io</pre>
+This workflow automates the process of reading tech news by fetching articles from an  RSS feed, filters for a category, summarises the top items using an AI Model, and sending a clean, HTML-formatted digest to email.
 
-### 3️⃣ Install Docker Compose
+- **Trigger:** Scheduled daily
+- **Source:** TechCrunch RSS feed
+- **Filter:** Articles with categories like "AI startups"
+- **AI Agent:** Gemini (used to summarize article content)
+- **Output:** Clean, HTML-formatted email digest with links
+- **Goal:** Automate news summarization into email-ready content
 
-<pre>sudo apt install docker-compose-plugin</pre>
+📄 Workflow file: [`rss-digest.json`](./workflows/rss-digest.json)
 
-### 4️⃣ Docker Compose File (n8n + PostgreSQL + Ollama)
+📸 Screenshot: [rss-email-output](./workflows/rss-email-output.png)
 
-- Created a <code>docker-compose.yml</code> with:
-  - n8n service
-  - PostgreSQL
-  - Qdrant
-  - Ollama 
-  - Named volumes for persistence
-
-- Exposed n8n on port <code>5678</code>
-- Configured volumes: <code>n8n_storage</code>, <code>postgres_storage</code>,<code> qdrant_storage</code>,<code> ollama_storage</code>
-- Configured environment variables in docker-compose.yml
-
-### 5️⃣ Start the Stack
-
-<pre>docker compose up -d</pre>
-
-### 6️⃣ First-Time Access
-
-- Opened: http://localhost:5678
-- Created initial user via n8n's UI
-- Verified credentials
-
-### 7️⃣ Stop the Entire Stack
-
-- docker compose down
-<hr style="height:2px; background-color:#ccc; border:none;">
-
-**💡 Check running containers in docker: <code>docker ps</code>**
-
-**💡 View n8n logs: <code>docker logs -f n8n</code>**
+---
