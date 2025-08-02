@@ -35,3 +35,5 @@ This workflow automates the process of reading tech news by fetching articles fr
 📸 Screenshot: [rss-email-output](./screenshots/rss-email-output.png)
 
 ---
+
+### 2️⃣ Agent-to-Agent
